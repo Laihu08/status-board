@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Status board</title>
+<style>
+:root{--bg:#f7f8fa;--card:#fff;--ink:#14213d;--muted:#667085;--line:#e4e7ec;--navy:#1f3864;--green:#16a34a;--orange:#ea580c;--blue:#2563eb;--amber:#ca8a04}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1420;--card:#171e2d;--ink:#e6e9ef;--muted:#98a2b3;--line:#283246;--navy:#8fb0ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:20px;margin:0 0 2px}.muted{color:var(--muted);font-size:12px}
+.lock{max-width:360px;margin:18vh auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px}
+input,select,button{font:inherit;color:inherit}
+input[type=password],input[type=search],select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:transparent}
+button{margin-top:10px;width:100%;padding:9px;border:0;border-radius:8px;background:var(--navy);color:#fff;font-weight:600;cursor:pointer}
+.err{color:#dc2626;font-size:13px;min-height:18px;margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:16px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}.stat b{font-size:22px;display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.bar>*{flex:1;min-width:160px}
+.tbl{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{white-space:nowrap;font-size:12px;color:var(--muted)}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:12px;border:1px solid currentColor;white-space:nowrap}
+.nw{white-space:nowrap}a{color:var(--blue)}
+.days{display:flex;gap:3px;align-items:flex-end;height:60px;margin-top:8px}.days div{flex:1;background:var(--green);border-radius:2px 2px 0 0;min-height:2px}
+</style></head><body>
+<div id="lock" class="lock"><h1>Status board</h1><div class="muted">Enter the password to view.</div>
+<form id="f" style="margin-top:14px"><input id="pw" type="password" autocomplete="current-password" placeholder="Password" required>
+<label class="muted" style="display:flex;gap:6px;margin-top:8px;align-items:center"><input id="keep" type="checkbox" style="width:auto"> Remember on this device</label>
+<button>Open</button><div id="err" class="err"></div></form></div>
+<div id="app" class="wrap" hidden></div>
+<script>
+const BLOB = {"v": 1, "iter": 600000, "salt": "VtKyctwMgE6eVAr4QaUwaQ==", "iv": "aI4T9y/rxd/1kidJ", "ct": "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"};
+const COLORS={applied:'var(--green)',offer:'var(--green)',interview:'var(--amber)',replied:'#0891b2',needs_me:'var(--orange)',docs_ready:'var(--blue)',error:'#dc2626'};
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function open_(pw){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+ const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(BLOB.salt),iterations:BLOB.iter,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt']);
+ const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(BLOB.iv)},key,b64(BLOB.ct));return JSON.parse(new TextDecoder().decode(pt));}
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function render(d){const c=d.counts,today=d.generated.slice(0,10),appliedToday=(d.perDay.find(x=>x[0]===today)||[0,0])[1];
+ const stats=[['Applied today',appliedToday+' / '+(d.maxPerDay||'-')],['Applied total',(c.applied||0)+(c.replied||0)+(c.interview||0)+(c.offer||0)+(c.rejected||0)],
+  ['Interviews',c.interview||0],['Offers',c.offer||0],['Needs me',c.needs_me||0],['In progress',(c.docs_ready||0)],['Shortlisted',c.shortlisted||0],['Jobs found',d.found]];
+ const max=Math.max(1,...d.perDay.map(x=>x[1]));
+ const app=document.getElementById('app');
+ app.innerHTML=`<h1>Job applications</h1><div class="muted">Updated ${esc(d.generated.slice(0,16).replace('T',' '))} Taipei time${d.paused?' · <b style="color:#dc2626">PAUSED</b>':''}</div>
+ <div class="stats">${stats.map(([l,n])=>`<div class="stat"><b>${esc(n)}</b><span class="muted">${l}</span></div>`).join('')}</div>
+ <div class="card" style="margin-bottom:12px"><div class="muted">Applications per day (last 30 days)</div><div class="days">${d.perDay.map(x=>`<div title="${x[0]}: ${x[1]}" style="height:${100*x[1]/max}%"></div>`).join('')||'<span class="muted">none yet</span>'}</div></div>
+ <div class="card"><div class="bar"><input id="q" type="search" placeholder="Search company, position, country, salary"><select id="s"><option value="">All statuses</option>${[...new Set(d.rows.map(r=>r.status))].sort().map(s=>`<option ${s==='applied'?'selected':''}>${s}</option>`).join('')}</select></div>
+ <div class="tbl"><table><thead><tr><th>Company</th><th>Position</th><th>Salary / compensation</th><th>Country</th><th>Status</th><th>Applied</th><th>Score</th><th>Posting</th></tr></thead><tbody id="rows"></tbody></table></div><div id="n" class="muted" style="margin-top:6px"></div></div>`;
+ const q=document.getElementById('q'),s=document.getElementById('s');
+ const draw=()=>{const t=q.value.toLowerCase(),st=s.value;const rs=d.rows.filter(r=>(!st||r.status===st)&&(!t||`${r.company} ${r.title} ${r.country} ${r.salary}`.toLowerCase().includes(t)));
+  document.getElementById('rows').innerHTML=rs.map(r=>`<tr><td class="nw">${esc(r.company)}</td><td>${esc(r.title)}</td><td class="nw">${r.salary?esc(r.salary):'<span class="muted">not stated</span>'}</td><td class="nw">${esc(r.country)}</td><td><span class="pill" style="color:${COLORS[r.status]||'var(--muted)'}">${esc(r.status.replace('_',' '))}</span>${r.email?` <span class="muted">${esc(r.email)}</span>`:''}</td><td class="nw">${esc(r.applied||'-')}</td><td>${esc(r.score??'-')}</td><td>${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">open</a>`:''}</td></tr>`).join('');
+  document.getElementById('n').textContent=rs.length+' of '+d.rows.length+' jobs';};
+ q.oninput=draw;s.onchange=draw;draw();document.getElementById('lock').hidden=true;app.hidden=false;}
+async function tryOpen(pw,remember){try{const d=await open_(pw);if(remember)try{localStorage.setItem('sb-pw',pw)}catch(e){}render(d);return true}catch(e){return false}}
+document.getElementById('f').onsubmit=async e=>{e.preventDefault();const ok=await tryOpen(document.getElementById('pw').value,document.getElementById('keep').checked);
+ if(!ok)document.getElementById('err').textContent='Wrong password.';};
+(async()=>{let pw=null;try{pw=localStorage.getItem('sb-pw')}catch(e){}if(pw&&!(await tryOpen(pw,false)))try{localStorage.removeItem('sb-pw')}catch(e){}})();
+</script></body></html>
